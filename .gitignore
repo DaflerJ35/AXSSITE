@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+# Large source images (use compressed versions)
+*.upscaled.png
