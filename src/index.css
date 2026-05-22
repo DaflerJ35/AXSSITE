@@ -1,6 +1,11 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* stylelint-disable at-rule-no-unknown */
+/* tailwindcss v4 @theme directive */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
@@ -197,6 +202,7 @@
 .text-gradient-champagne {
   background: linear-gradient(135deg, #D4AF37 0%, #FBF0D2 50%, #D4AF37 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 200% auto;
   animation: shine 8s linear infinite;
@@ -246,7 +252,7 @@
 
 .final-logo-sequence {
   position: relative;
-  min-height: 100vh;
+  min-height: 150vh;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -289,10 +295,10 @@
     0 0 120px rgba(214, 168, 79, 0.12);
 }
 
-.final-logo-mark-img {
-  width: clamp(200px, 40vw, 600px);
+.final-studio-logo-img {
+  width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 44px rgba(214, 168, 79, 0.4));
+  filter: drop-shadow(0 0 64px rgba(214, 168, 79, 0.35));
 }
 
 .final-logo-tagline {
@@ -321,11 +327,11 @@
 
 .final-footer nav {
   display: flex;
-  gap: 18px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.final-footer a {
+.final-footer nav a {
   color: rgba(244, 239, 228, 0.72);
   text-decoration: none;
   font-size: 11px;
@@ -333,10 +339,17 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
-.final-footer a:hover {
+.final-footer nav a:hover {
   color: #f0d28a;
+}
+
+.final-footer nav a:not(:last-child)::after {
+  content: "·";
+  margin: 0 18px;
+  color: rgba(244, 239, 228, 0.3);
 }
 
 @media (max-width: 760px) {

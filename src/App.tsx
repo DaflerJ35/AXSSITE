@@ -1,5 +1,6 @@
 import * as React from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import { Routes, Route, Link } from "react-router-dom";
 import { 
   Dna, 
   Globe, 
@@ -21,8 +22,13 @@ import {
   Mic
 } from "lucide-react";
 import { useRef } from "react";
-const logoPath = "/src/assets/images/axs_logo_main_1779216939111.png";
-const backdropPath = "/src/assets/images/legendary_cinematic_backdrop_1779217241755.png";
+import logoPath from "./assets/images/axs_logo_main_1779216939111.png";
+import studioLogoPath from "./assets/images/axs_creative_studio_logo.png";
+import backdropPath from "./assets/images/legendary_cinematic_backdrop_1779217241755.png";
+import upscaledLogoPath from "./assets/images/axs_upscaled_logo.jpg";
+import PrivacyPolicy from "./PrivacyPolicy.tsx";
+import Terms from "./Terms.tsx";
+import EarlyAccess from "./EarlyAccess.tsx";
 
 const BackgroundLayers = ({ scrollYProgress }: { scrollYProgress: any }) => {
   const bgTranslateY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
@@ -104,15 +110,17 @@ const Nav = () => (
       </div>
     </div>
     <div className="hidden lg:flex items-center gap-12 text-[10px] font-bold tracking-[0.3em] text-glass-muted uppercase">
-      <a href="#" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Memory</a>
-      <a href="#" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Sub-Studios</a>
-      <a href="#" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Ecosystem</a>
-      <a href="#" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Governance</a>
+      <a href="#memory" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Memory</a>
+      <a href="#sub-studios" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Sub-Studios</a>
+      <a href="#ecosystem" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Ecosystem</a>
+      <a href="#governance" className="hover:text-champagne transition-all hover:tracking-[0.4em]">Governance</a>
     </div>
     <div className="flex items-center gap-4">
-      <button className="hidden sm:block px-8 py-2.5 glass-premium border-champagne/20 text-champagne text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-champagne/10 transition-all rounded-full">
-        ENTER_PORTAL
-      </button>
+      <Link to="/early-access">
+        <button className="hidden sm:block px-8 py-2.5 glass-premium border-champagne/20 text-champagne text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-champagne/10 transition-all rounded-full">
+          ENTER_PORTAL
+        </button>
+      </Link>
     </div>
   </nav>
 );
@@ -137,47 +145,85 @@ const GlassCard = ({ children, className = "" }: { children: React.ReactNode, cl
 );
 
 const FinalBranding = () => {
-  const scrollRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: scrollRef,
-    offset: ["start end", "end end"]
-  });
+  const logoRef = useRef<HTMLImageElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [studioImgError, setStudioImgError] = React.useState(false);
 
-  const logoScale = useTransform(scrollYProgress, [0.3, 0.7], [0.8, 1]);
-  const logoOpacity = useTransform(scrollYProgress, [0.3, 0.6], [0, 1]);
-  const logoBlur = useTransform(scrollYProgress, [0.3, 0.6], ["12px", "0px"]);
-  
-  const footerOpacity = useTransform(scrollYProgress, [0.8, 0.95], [0, 1]);
-  const footerY = useTransform(scrollYProgress, [0.8, 0.95], [24, 0]);
+  React.useEffect(() => {
+    const logo = logoRef.current;
+    const footer = footerRef.current;
+
+    if (!logo || !footer) return;
+
+    const handleScroll = () => {
+      const logoRect = logo.getBoundingClientRect();
+      const triggerPoint = window.innerHeight * 0.6;
+
+      if (logoRect.top < triggerPoint) {
+        logo.style.opacity = "1";
+        logo.style.transform = "scale(1) translateY(0)";
+        logo.style.filter = "blur(0)";
+      } else {
+        logo.style.opacity = "0";
+        logo.style.transform = "scale(0.82) translateY(40px)";
+        logo.style.filter = "blur(12px)";
+      }
+
+      // Footer appears after logo
+      const footerTrigger = window.innerHeight * 0.3;
+      if (logoRect.top < footerTrigger) {
+        footer.style.opacity = "1";
+        footer.style.transform = "translateY(0)";
+        footer.style.filter = "blur(0)";
+      } else {
+        footer.style.opacity = "0";
+        footer.style.transform = "translateY(40px)";
+        footer.style.filter = "blur(8px)";
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial check
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <section ref={scrollRef} className="final-logo-sequence z-[110]">
+    <section className="final-logo-sequence z-[110]">
       <div className="final-logo-backdrop" aria-hidden="true" />
 
       <div className="final-logo-inner">
-         <motion.div
-           style={{ 
-             scale: logoScale, 
-             opacity: logoOpacity,
-             filter: logoBlur
-           }}
-           className="relative"
-         >
-           {/* We use the logo image for maximum branding impact */}
-           <img src={logoPath} alt="AXS Logo" className="final-logo-mark-img mx-auto mb-8" referrerPolicy="no-referrer" />
-           <div className="final-logo-mark hidden md:block">AXS</div>
+         <div className="relative flex flex-col items-center logo-container">
+           {/* Studio artwork — hidden on error, falls back to text mark */}
+           <img
+             ref={logoRef}
+             id="scrollLogo"
+             src={studioLogoPath}
+             alt="AXS AI Creative Studio"
+             className="final-studio-logo-img"
+             style={{ display: studioImgError ? "none" : "block", opacity: 0, transition: "opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out" }}
+             onError={() => setStudioImgError(true)}
+             referrerPolicy="no-referrer"
+           />
+
+           {/* Fallback brand mark when studio image is not available */}
+           {studioImgError && (
+             <>
+               <img src={logoPath} alt="AXS Logo" className="w-24 h-24 object-contain mb-8 opacity-80" referrerPolicy="no-referrer" />
+               <div className="final-logo-mark">AXS</div>
+             </>
+           )}
+
            <p className="final-logo-tagline">
              Imagine. Build. Direct. Distribute. Remember.
            </p>
-         </motion.div>
+         </div>
       </div>
 
-      <motion.footer 
-        style={{ 
-          opacity: footerOpacity,
-          y: footerY
-        }}
+      <footer
+        ref={footerRef}
         className="final-footer"
+        style={{ opacity: 0, transition: "opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out" }}
       >
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
@@ -188,14 +234,14 @@ const FinalBranding = () => {
         </div>
 
         <nav>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms and Conditions</a>
-          <a href="#">Early Access</a>
-          <a href="mailto:access@axs.ai">Contact</a>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms and Conditions</Link>
+          <Link to="/early-access">Early Access</Link>
+          <a href="mailto:daflerjeremy35@hotmail.com">Contact</a>
         </nav>
 
         <span className="text-[9px] font-bold tracking-widest uppercase opacity-40">© 2026 AXS AI Innovation Studio. All rights reserved.</span>
-      </motion.footer>
+      </footer>
     </section>
   );
 };
@@ -355,7 +401,7 @@ const ProductProofCard = ({ title, category, delay = 0, variant = "default" }: {
   </motion.div>
 );
 
-export default function App() {
+function HomePage() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -368,7 +414,7 @@ export default function App() {
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    <div ref={containerRef} className="relative bg-obsidian overflow-hidden scrollbar-hide">
+    <div ref={containerRef} className="relative overflow-hidden scrollbar-hide" style={{ backgroundColor: 'var(--color-obsidian)' }}>
       {/* Cinematic Legendary Background */}
       <BackgroundLayers scrollYProgress={scrollYProgress} />
 
@@ -418,13 +464,17 @@ export default function App() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-24">
-            <button className="group relative px-14 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.15)] flex items-center gap-4 overflow-hidden">
-               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_infinite] transition-all" />
-              BACK_THE_BUILD <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-            </button>
-            <button className="group px-14 py-6 glass-premium border-white/10 font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-white/5 hover:scale-105 transition-all duration-500 flex items-center gap-4">
-              JOIN_ACCESS <Sparkles className="w-5 h-5 group-hover:rotate-12 group-hover:scale-125 transition-transform" />
-            </button>
+            <Link to="/early-access">
+              <button className="group relative px-14 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.15)] flex items-center gap-4 overflow-hidden">
+                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_infinite] transition-all" />
+                BACK_THE_BUILD <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+              </button>
+            </Link>
+            <Link to="/early-access">
+              <button className="group px-14 py-6 glass-premium border-white/10 font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-white/5 hover:scale-105 transition-all duration-500 flex items-center gap-4">
+                JOIN_ACCESS <Sparkles className="w-5 h-5 group-hover:rotate-12 group-hover:scale-125 transition-transform" />
+              </button>
+            </Link>
           </div>
         </motion.div>
       </section>
@@ -509,7 +559,7 @@ export default function App() {
       </section>
 
       {/* The Solution */}
-      <section className="relative z-10 py-64 px-4 w-full overflow-hidden bg-black/20">
+      <section id="memory" className="relative z-10 py-64 px-4 w-full overflow-hidden bg-black/20">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-champagne/[0.03] blur-[220px]" />
         
         <div className="max-w-7xl mx-auto relative px-4">
@@ -587,7 +637,7 @@ export default function App() {
       </section>
 
       {/* Cinematic Rooms */}
-      <section className="relative z-10 py-32 px-4 w-full">
+      <section id="sub-studios" className="relative z-10 py-32 px-4 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-20 px-4">
              <div className="max-w-3xl">
@@ -625,9 +675,11 @@ export default function App() {
                 <p className="text-base text-glass-muted leading-relaxed mb-12 flex-grow font-medium pointer-events-none">
                   {room.desc}
                 </p>
-                <button className="group/btn w-full py-5 btn-premium rounded-xl text-[10px] font-bold tracking-[0.4em] uppercase text-white flex items-center justify-center gap-3 active:scale-95">
-                  Open Sub-Studio <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform" />
-                </button>
+                <Link to="/early-access">
+                  <button className="group/btn w-full py-5 btn-premium rounded-xl text-[10px] font-bold tracking-[0.4em] uppercase text-white flex items-center justify-center gap-3 active:scale-95">
+                    Open Sub-Studio <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform" />
+                  </button>
+                </Link>
               </GlassCard>
             ))}
           </div>
@@ -635,7 +687,7 @@ export default function App() {
       </section>
 
       {/* Product Proof Gallery */}
-      <section className="relative z-10 py-40 px-4 w-full bg-black/30 bg-blueprint">
+      <section id="ecosystem" className="relative z-10 py-40 px-4 w-full bg-black/30 bg-blueprint">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-32">
             <div className="max-w-2xl">
@@ -691,7 +743,7 @@ export default function App() {
       </section>
 
       {/* Funding Clarity Section */}
-      <section className="relative z-10 py-40 px-4 bg-black/50">
+      <section id="governance" className="relative z-10 py-40 px-4 bg-black/50">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex flex-col items-center text-center">
              <SectionLabel color="text-champagne">Development Status</SectionLabel>
@@ -748,12 +800,16 @@ export default function App() {
             AXS is in active development. We are building the memory layer that connects every step of cinematic production. Back the build or join early access to shape the future of storytelling.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-24">
-            <button className="group px-16 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-110 transition-all duration-500 flex items-center gap-3">
-              Back the Build <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-            </button>
-            <button className="group px-16 py-6 glass-premium border-white/10 font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-white/5 hover:scale-110 transition-all duration-500 flex items-center gap-3">
-              Join Early Access <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            </button>
+            <Link to="/early-access">
+              <button className="group px-16 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-110 transition-all duration-500 flex items-center gap-3">
+                Back the Build <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+              </button>
+            </Link>
+            <Link to="/early-access">
+              <button className="group px-16 py-6 glass-premium border-white/10 font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-white/5 hover:scale-110 transition-all duration-500 flex items-center gap-3">
+                Join Early Access <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              </button>
+            </Link>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8 text-[10px] font-bold tracking-[0.3em] text-glass-muted uppercase">
@@ -767,5 +823,16 @@ export default function App() {
 
       <FinalBranding />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/early-access" element={<EarlyAccess />} />
+    </Routes>
   );
 }
