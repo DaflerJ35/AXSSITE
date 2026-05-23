@@ -8,3 +8,6 @@ coverage/
 !.env.example
 # Large source images (use compressed versions)
 *.upscaled.png
+
+# Local Netlify folder
+.netlify

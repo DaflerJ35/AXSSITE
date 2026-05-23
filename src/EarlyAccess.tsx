@@ -1,6 +1,7 @@
 import { ArrowLeft, Sparkles, ChevronRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, FormEvent } from "react";
+import { supabase } from "./lib/supabase";
 
 export default function EarlyAccess() {
   const [formData, setFormData] = useState({
@@ -10,14 +11,33 @@ export default function EarlyAccess() {
     project: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Early Access Request - ${formData.name}`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\nEmail: ${formData.email}\nCreator Type: ${formData.creatorType}\nWhat I want to build: ${formData.project}`
-    );
-    window.location.href = `mailto:daflerjeremy35@hotmail.com?subject=${subject}&body=${body}`;
+    setSubmitting(true);
+    setError("");
+
+    const { error: supaError } = await supabase.from("early_access").insert([
+      {
+        name: formData.name,
+        email: formData.email,
+        creator_type: formData.creatorType,
+        project_goal: formData.project,
+        plan_interest: "early_access",
+        wants_demo: false,
+        source: "website",
+      },
+    ]);
+
+    setSubmitting(false);
+
+    if (supaError) {
+      setError(supaError.message);
+      return;
+    }
+
     setSubmitted(true);
   };
   return (
@@ -140,11 +160,16 @@ export default function EarlyAccess() {
                 <CheckCircle className="w-16 h-16 text-champagne mx-auto mb-6" />
                 <h3 className="font-display text-2xl font-bold text-white mb-4">Request Submitted</h3>
                 <p className="text-glass-muted max-w-md mx-auto">
-                  Your email client should have opened. Send the message and we'll review your request. If it didn't open, email <a href="mailto:daflerjeremy35@hotmail.com" className="text-champagne hover:underline">daflerjeremy35@hotmail.com</a> directly.
+                  Your early access request has been recorded. We'll review it and reach out at {formData.email} when spots open.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto text-left mb-8">
+                {error && (
+                  <div className="md:col-span-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                    Error: {error}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-widest text-champagne font-bold block">Name *</label>
                   <input
@@ -192,9 +217,10 @@ export default function EarlyAccess() {
                 <div className="md:col-span-2 mt-4">
                   <button
                     type="submit"
-                    className="group px-14 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-105 transition-all duration-500 flex items-center gap-4 mx-auto"
+                    disabled={submitting}
+                    className="group px-14 py-6 bg-white text-black font-bold text-[10px] tracking-[0.4em] uppercase hover:bg-champagne hover:scale-105 transition-all duration-500 flex items-center gap-4 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    REQUEST EARLY ACCESS <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                    {submitting ? "SUBMITTING..." : "REQUEST EARLY ACCESS"} <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                   </button>
                 </div>
               </form>

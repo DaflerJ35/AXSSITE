@@ -75,7 +75,7 @@ html {
 }
 
 :root {
-  background-color: var(--color-obsidian);
+  background-color: #14161b;
   color: white;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

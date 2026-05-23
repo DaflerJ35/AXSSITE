@@ -43,10 +43,10 @@ const BackgroundLayers = ({ scrollYProgress }: { scrollYProgress: any }) => {
         style={{ y: bgTranslateY, scale: bgScale }}
         className="absolute inset-0 z-0"
       >
-        <img 
-          src={backdropPath} 
-          alt="" 
-          className="w-full h-full object-cover opacity-60 brightness-[0.4] contrast-[1.2]" 
+        <img
+          src={backdropPath}
+          alt=""
+          className="w-full h-full object-cover opacity-80 brightness-[0.7] contrast-[1.1]"
           referrerPolicy="no-referrer"
         />
       </motion.div>
